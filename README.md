@@ -39,3 +39,41 @@ The architecture operates on a continuous pipeline of multi-modal data:
     └── utils/
         ├── bias_checker.py     # Sector & recency bias detection
         └── sentiment.py        # FinBERT sentiment analysis
+
+🚀 Installation & Setup
+1. Clone the repository and install dependencies:
+
+Bash
+git clone [https://github.com/yourusername/risk-aware-ai-portfolio.git](https://github.com/aviral07-code/risk-aware-ai-portfolio.git)
+cd risk-aware-ai-portfolio
+pip install -r requirements.txt
+
+2. Install and Start Ollama (Required for LLM Critic):
+
+Download Ollama from ollama.com
+
+Pull the Llama 3.1 model:
+
+Bash
+ollama run llama3.1
+🏃‍♂️ Running the Pipeline
+1. Data Collection & Processing:
+Populate the data/raw directory with market prices, macro features, and news embeddings.
+
+Bash
+python scripts/fetch_real_news.py
+python scripts/process_news_for_rl.py
+python scripts/build_vector_db.py
+2. Train the RL Agent:
+Run the diagnostic tool to ensure data shape alignment, then initiate training.
+
+Bash
+python scripts/debug_system.py
+python scripts/train_ppo.py
+3. Launch the Dashboard:
+Start the Gradio web UI to run backtests, visualize asset allocations, and monitor the LLM Critic's audit logs.
+
+Bash
+python app/main.py
+⚠️ Disclaimer
+This software is for academic and educational purposes only. It is not financial advice. Do not use this system to trade real capital.
