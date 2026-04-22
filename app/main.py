@@ -9,6 +9,7 @@ import yfinance as yf
 from datetime import timedelta
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.tune.registry import register_env
+from src.utils.bias_checker import sector_overconcentration
 
 # --- PATH SETUP ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -236,7 +237,7 @@ def run_backtest(start_date, end_date, selected_tickers):
                     weights_history.append(env.weights)
                     cvar_history.append(info.get('cvar', 0.0))
                     
-                    # --- NEW: EVENT-DRIVEN CRITIC ---
+                    # --- NEW: EVENT-DRIVEN CRITIC & BIAS CHECKER ---
                     if critic:
                         if len(weights_history) > 1:
                             turnover = np.sum(np.abs(env.weights - weights_history[-2]))
@@ -246,8 +247,19 @@ def run_backtest(start_date, end_date, selected_tickers):
                         is_month_end = current_date.is_month_end
                         is_major_shift = turnover > 0.05 
                         
+                        # -- BIAS CHECKER INTEGRATION --
+                        # This logs structural violations before the environment linearly projects them away
+                        violations = sector_overconcentration(
+                            weights=action, # Evaluating the agent's raw mathematical desire
+                            sectors=sectors,
+                            tickers=selected_tickers,
+                            sector_max=0.25
+                        )
+                        if violations and (is_month_end or is_major_shift):
+                            violation_str = ", ".join([f"{s} ({w:.2%})" for s, w in violations.items()])
+                            audit_log.append(f"⚠️ **Bias Checker Alert ({current_date.date()}):** Agent attempted to over-concentrate >25% in: {violation_str}. Environment enforced hard cap.\n---")
+
                         if is_month_end or is_major_shift:
-                            # Grab the top 5 heaviest weighted stocks to ensure Critic always has data
                             top_idx = np.argsort(env.weights)[::-1][:5]
                             w_dict = {selected_tickers[i]: float(env.weights[i]) for i in top_idx if i < len(selected_tickers)}
                             
