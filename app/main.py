@@ -9,14 +9,14 @@ import yfinance as yf
 from datetime import timedelta
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.tune.registry import register_env
-from src.utils.bias_checker import sector_overconcentration
+
 
 # --- PATH SETUP ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 sys.path.append(project_root)
 # ------------------
-
+from src.utils.bias_checker import sector_overconcentration
 from src.envs.risk_aware_env import RiskAwarePortfolioEnv
 from src.agents.llm_critic import LLMCritic
 from app.dashboard_utils import make_dashboard_charts
